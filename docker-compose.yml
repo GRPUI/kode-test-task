@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    image: postgres:16.1-alpine
+    container_name: postgres
+    env_file:
+      - .env
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+      - ./pginit:/docker-entrypoint-initdb.d
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi
+    env_file:
+      - .env
+    depends_on:
+      - postgres-db
+    ports:
+      - "8000:8000"
+
