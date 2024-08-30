@@ -4,7 +4,12 @@ from asyncpg import Connection
 from fastapi import APIRouter, Depends
 
 from deps import DatabaseConnectionMarker
-from models.notes import AddNoteModel, UpdateNoteModel, NoteModel
+from models.notes import (
+    AddNoteModel,
+    UpdateNoteModel,
+    NoteModel,
+    NoteModelWithMisspellings,
+)
 from services import notes
 from services.users import check_access_token
 
@@ -33,7 +38,7 @@ async def add_note(
     data: AddNoteModel,
     connection: Connection = Depends(DatabaseConnectionMarker),
     user_id: int = Depends(check_access_token),
-) -> NoteModel:
+) -> NoteModel | NoteModelWithMisspellings:
     return await notes.add_note(user_id, data, connection)
 
 

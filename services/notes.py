@@ -1,9 +1,15 @@
 from typing import List
 
+import aiohttp
 from asyncpg import Connection
 from fastapi import HTTPException
 
-from models.notes import AddNoteModel, NoteModel, UpdateNoteModel
+from models.notes import (
+    AddNoteModel,
+    NoteModel,
+    UpdateNoteModel,
+    NoteModelWithMisspellings,
+)
 
 
 async def get_notes(user_id: int, connection: Connection) -> List[NoteModel]:
@@ -46,7 +52,7 @@ async def get_note_by_id(
 
 async def add_note(
     user_id: int, data: AddNoteModel, connection: Connection
-) -> NoteModel:
+) -> NoteModel | NoteModelWithMisspellings:
     """
     Функция для добавления заметки
 
@@ -66,6 +72,22 @@ async def add_note(
     )
 
     note = await get_note_by_id(note_id, connection, user_id)
+
+    text = note.title + "\n" + note.content
+
+    async with aiohttp.ClientSession() as session:
+        response = await session.post(
+            "https://speller.yandex.net/services/spellservice.json/checkText",
+            data={
+                "text": text,
+                "lang": "en, ru",
+                "options": 4,
+            },
+        )
+        response_data = await response.json()
+
+    if response_data:
+        note = NoteModelWithMisspellings(**note.dict(), misspellings=response_data)
 
     return note
 
