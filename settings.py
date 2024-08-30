@@ -11,6 +11,4 @@ class Settings:
     cors_allowed_origins: List[str]
     cors_allowed_methods: List[str]
     cors_allowed_headers: List[str]
-    redis_host: str
-    redis_port: int
     jwt_secret_key: str

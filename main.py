@@ -7,9 +7,6 @@ import dotenv
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_cache import FastAPICache
-from fastapi_cache.backends.redis import RedisBackend
-from redis import asyncio as aioredis
 
 from deps import DatabaseConnectionMarker, SettingsMarker
 from routers import notes, users
@@ -23,9 +20,6 @@ async def lifespan(app: FastAPI):
     connection = await asyncpg.connect(
         f"postgresql://{settings.db_user}:{settings.db_password}@{settings.db_host}/{settings.db_name}"
     )
-
-    redis = aioredis.from_url(f"redis://{settings.redis_host}:{settings.redis_port}")
-    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
 
     app.dependency_overrides.update(
         {
@@ -68,8 +62,6 @@ def main():
         cors_allowed_origins=os.getenv("ALLOWED_ORIGINS").split(","),
         cors_allowed_methods=os.getenv("ALLOWED_METHODS").split(","),
         cors_allowed_headers=os.getenv("ALLOWED_HEADERS").split(","),
-        redis_host=os.getenv("REDIS_HOST"),
-        redis_port=int(os.getenv("REDIS_PORT")),
         jwt_secret_key=os.getenv("JWT_SECRET_KEY"),
     )
 
